@@ -1,6 +1,7 @@
 import Home from "./Pages/Home";
+import ProductList from "./Pages/ProductList";
 
 const App = () => {
-  return <div> <Home/> </div>
+  return <div> <ProductList/> </div>
 }
 export default App;
