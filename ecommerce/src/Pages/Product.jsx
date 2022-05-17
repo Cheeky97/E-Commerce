@@ -1,11 +1,14 @@
 import { Add, Remove } from '@mui/icons-material'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import styledComponents from 'styled-components'
 import Announcement from '../Components/Announcement'
 import Footer from '../Components/Footer'
 import Navbar from '../Components/Navbar'
 import Newsletter from '../Components/Newsletter'
 import {mobile} from '../Responsive'
+import { useLocation } from 'react-router'
+import { publicRequest } from '../requestMethods'
+import axios from 'axios'
 
 const Container = styledComponents.div``
 const Wrapper = styledComponents.div`
@@ -104,30 +107,39 @@ const Button = styledComponents.button`
 `
 
 const Product = () => {
+
+    const location = useLocation();
+    const id = location.pathname.split("/")[2];
+    const [product, setProduct] = useState({});
+
+    useEffect(()=>{
+
+        const getProduct = async () =>{
+            const res = await publicRequest.get("/products/find/"+id);
+            setProduct(res.data);
+        }
+        getProduct();
+    },[id])
+    console.log(product);
   return (
     <Container>
         <Navbar/>
         <Announcement/>
         <Wrapper>
             <ImgContainer>
-                <Image src="https://i.ibb.co/S6qMxwr/jean.jpg"/>
+                <Image src={product.img}/>
             </ImgContainer>
             <InfoContainer>
-                <Title>Denim Jumpsuit</Title>
+                <Title>{product.title}</Title>
                 <Desc>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-                    venenatis, dolor in finibus malesuada, lectus ipsum porta nunc, at
-                    iaculis arcu nisi sed mauris. Nulla fermentum vestibulum ex, eget
-                    tristique tortor pretium ut. Curabitur elit justo, consequat id
-                    condimentum ac, volutpat ornare.
+                    {product.desc}
                 </Desc>
-                <Price>$ 20</Price>
+                <Price>$ {product.price}</Price>
                 <FilterContainer>
                     <Filter>
                         <FilterTitle>Color</FilterTitle>
-                        <FilterColor color="black" />
-                        <FilterColor color="darkblue" />
-                        <FilterColor color="gray" />
+                        {/* { product.color.map(c => <FilterColor color= {c} key={c} />)} */}
+                        <FilterColor color= "yellow" />
                     </Filter>
                     <Filter>
                         <FilterTitle>Size</FilterTitle>
