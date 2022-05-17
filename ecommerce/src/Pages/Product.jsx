@@ -8,7 +8,8 @@ import Newsletter from '../Components/Newsletter'
 import {mobile} from '../Responsive'
 import { useLocation } from 'react-router'
 import { publicRequest } from '../requestMethods'
-import axios from 'axios'
+import { lazy } from 'react'
+import { Suspense } from 'react'
 
 const Container = styledComponents.div``
 const Wrapper = styledComponents.div`
@@ -115,7 +116,7 @@ const Product = () => {
     useEffect(()=>{
 
         const getProduct = async () =>{
-            const res = await publicRequest.get("/products/find/"+id);
+            const res = await publicRequest.get(`/products/find/${id}`);
             setProduct(res.data);
         }
         getProduct();
@@ -138,8 +139,7 @@ const Product = () => {
                 <FilterContainer>
                     <Filter>
                         <FilterTitle>Color</FilterTitle>
-                        {/* { product.color.map(c => <FilterColor color= {c} key={c} />)} */}
-                        <FilterColor color= "yellow" />
+                        { product.color ? product.color.map(c => <FilterColor color= {c} key={c} />) : null}
                     </Filter>
                     <Filter>
                         <FilterTitle>Size</FilterTitle>
