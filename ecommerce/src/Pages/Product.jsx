@@ -8,8 +8,8 @@ import Newsletter from '../Components/Newsletter'
 import {mobile} from '../Responsive'
 import { useLocation } from 'react-router'
 import { publicRequest } from '../requestMethods'
-import { lazy } from 'react'
-import { Suspense } from 'react'
+import { addProduct } from '../Redux/cartRedux'
+import { useDispatch } from 'react-redux'
 
 const Container = styledComponents.div``
 const Wrapper = styledComponents.div`
@@ -115,6 +115,7 @@ const Product = () => {
     const [quantity, setQuantity] = useState(1);
     const [color, setColor] = useState("");
     const [size, setSize] = useState("");
+    const dispatch = useDispatch();
 
     useEffect(()=>{
 
@@ -134,7 +135,7 @@ const Product = () => {
     }
 
     const handleClick = () =>{
-        
+        dispatch(addProduct({...product, quantity, color, size}));
     }
 
     console.log(product);
@@ -160,7 +161,8 @@ const Product = () => {
                     <Filter>
                         <FilterTitle>Size</FilterTitle>
                         <FilterSize onChange={(e) => setSize(e.target.value)}>
-                            { product.size?.map(s => <FilterSizeOption key={s}>{s}</FilterSizeOption>) }
+                            <FilterSizeOption value="none" selected disabled hidden>Select Size</FilterSizeOption>
+                            { product.size?.map(s => <FilterSizeOption  value={s} key={s}>{s}</FilterSizeOption>) }
                         </FilterSize>
                     </Filter>
                 </FilterContainer>
