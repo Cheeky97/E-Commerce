@@ -1,11 +1,15 @@
 import { Add, Remove } from '@mui/icons-material'
-import React from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import styledComponents from 'styled-components'
 import Announcement from '../Components/Announcement'
 import Footer from '../Components/Footer'
 import Navbar from '../Components/Navbar'
 import {mobile} from '../Responsive'
+import StripeCheckout from 'react-stripe-checkout'
+import {loadStripe} from '@stripe/stripe-js'
+
+
 
 const Container = styledComponents.div`
 
@@ -147,8 +151,18 @@ const Button = styledComponents.button`
 
 const Cart = () => {
 
+    //const KEY = process.env.REACT_APP_STRIPE;
+    const KEY =  loadStripe("pk_test_51L05rZHBwns1ghZxlJZAH3I2DneeRf9FAyrgs8naboYyyqYiVuFKwUeVc3ouK5P72Nk4bks2hkFn77uPFiHoKxdZ003Ug3dBtS");
+    console.log(KEY);
+    console.log(toString(process.env.REACT_APP_STRIPE));
     const cart = useSelector(state=> state.cart);
-    console.log(cart);
+    const [stripeToken, setStripeToken] = useState(null);
+    const onToken = (token) => {
+        setStripeToken(token)
+    };
+
+    console.log(stripeToken);
+
   return (
     <Container>
         <Navbar/>
@@ -165,9 +179,8 @@ const Cart = () => {
             </Top>
             <Bottom>
                 <Info>
-{/* "https://hips.hearstapps.com/vader-prod.s3.amazonaws.com/1614188818-TD1MTHU_SHOE_ANGLE_GLOBAL_MENS_TREE_DASHERS_THUNDER_b01b1013-cd8d-48e7-bed9-52db26515dc4.png?crop=1xw:1.00xh;center,top&resize=480%3A%2A" */}
-                    { cart.product.map((p)=> (
-                        <Product >
+                    { cart.product.map((p,index)=> (
+                        <Product key={index}>
                             <ProductDetail>
                                 <Image src={p.img}/>
                                 <Details>
@@ -207,7 +220,18 @@ const Cart = () => {
                         <SummaryItemText>Total</SummaryItemText>
                         <SummaryItemPrice>$ {cart.total}</SummaryItemPrice>
                     </SummaryItem>
-                    <Button>CHECKOUT NOW</Button>
+                    <StripeCheckout
+                        name="CHEEKY Shop"
+                        image="https://avatars.githubusercontent.com/u/1486366?v=4"
+                        billingAddress
+                        shippingAddress
+                        description={`Your total is $${cart.total}`}
+                        amount={cart.total*100}
+                        token={onToken}
+                        stripeKey="pk_test_51L05rZHBwns1ghZxlJZAH3I2DneeRf9FAyrgs8naboYyyqYiVuFKwUeVc3ouK5P72Nk4bks2hkFn77uPFiHoKxdZ003Ug3dBtS"
+                    >
+                        <Button>CHECKOUT NOW</Button>
+                    </StripeCheckout>
                 </Summary>
             </Bottom>
         </Wrapper>
