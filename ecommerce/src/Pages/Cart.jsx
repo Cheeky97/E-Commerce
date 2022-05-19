@@ -1,10 +1,16 @@
 import { Add, Remove } from '@mui/icons-material'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import styledComponents from 'styled-components'
 import Announcement from '../Components/Announcement'
 import Footer from '../Components/Footer'
 import Navbar from '../Components/Navbar'
 import {mobile} from '../Responsive'
+import StripeCheckout from 'react-stripe-checkout'
+import { userRequest } from '../requestMethods'
+import { useNavigate } from 'react-router-dom'
+
+
 
 const Container = styledComponents.div`
 
@@ -145,6 +151,31 @@ const Button = styledComponents.button`
 `
 
 const Cart = () => {
+
+    const navigate = useNavigate();
+    const cart = useSelector(state=> state.cart);
+    const [stripeToken, setStripeToken] = useState(null);
+    const onToken = (token) => {
+        setStripeToken(token)
+    };
+
+    useEffect(()=>{
+        const makeRequest = async () => {
+            try {
+                const res = await userRequest.post("/checkout/payment",{
+                        tokenId: stripeToken.id,
+                        amount: cart.total
+                    });
+                navigate("/success", {state:{stripeData: res.data, orderData: cart}});
+            } catch(err){
+                console.log(err);
+            }
+            
+        }
+        stripeToken && makeRequest();
+        
+    },[stripeToken, cart, navigate]);
+
   return (
     <Container>
         <Navbar/>
@@ -161,51 +192,34 @@ const Cart = () => {
             </Top>
             <Bottom>
                 <Info>
-                    <Product>
-                        <ProductDetail>
-                            <Image src="https://hips.hearstapps.com/vader-prod.s3.amazonaws.com/1614188818-TD1MTHU_SHOE_ANGLE_GLOBAL_MENS_TREE_DASHERS_THUNDER_b01b1013-cd8d-48e7-bed9-52db26515dc4.png?crop=1xw:1.00xh;center,top&resize=480%3A%2A"/>
-                            <Details>
-                                <ProductName><b>Product:</b> NIKE AIR SHOES</ProductName>
-                                <ProductId><b>ID:</b> 8667744987</ProductId>
-                                <ProductColor color='black'/>
-                                <ProductSize><b>SIZE:</b> 41</ProductSize>
-                            </Details>
-                        </ProductDetail>
-                        <PriceDetail>
-                            <ProductAmountContainer>
-                                <Add/>
-                                <ProductAmount>2</ProductAmount>
-                                <Remove/>
-                            </ProductAmountContainer>
-                            <ProductPrice>$ 30</ProductPrice>
-                        </PriceDetail>
-                    </Product>
+                    { cart.product.map((p,index)=> (
+                        <Product key={index}>
+                            <ProductDetail>
+                                <Image src={p.img}/>
+                                <Details>
+                                    <ProductName><b>Product:</b> {p.title}</ProductName>
+                                    <ProductId><b>ID:</b> {p._id}</ProductId>
+                                    <ProductColor color={p.color}/>
+                                    <ProductSize><b>SIZE:</b> {p.size}</ProductSize>
+                                </Details>
+                            </ProductDetail>
+                            <PriceDetail>
+                                <ProductAmountContainer>
+                                    <Add/>
+                                    <ProductAmount>{p.quantity}</ProductAmount>
+                                    <Remove/>
+                                </ProductAmountContainer>
+                                <ProductPrice>$ {p.price*p.quantity}</ProductPrice>
+                            </PriceDetail>
+                        </Product>
+                     ))}
                     <Hr/>
-                    <Product>
-                        <ProductDetail>
-                            <Image src="https://i.pinimg.com/originals/2d/af/f8/2daff8e0823e51dd752704a47d5b795c.png"/>
-                            <Details>
-                                <ProductName><b>Product:</b> HAKURA T-SHIRT</ProductName>
-                                <ProductId><b>ID:</b> 93813718293</ProductId>
-                                <ProductColor color='gray'/>
-                                <ProductSize><b>SIZE:</b> M</ProductSize>
-                            </Details>
-                        </ProductDetail>
-                        <PriceDetail>
-                            <ProductAmountContainer>
-                                <Add/>
-                                <ProductAmount>1</ProductAmount>
-                                <Remove/>
-                            </ProductAmountContainer>
-                            <ProductPrice>$ 20</ProductPrice>
-                        </PriceDetail>
-                    </Product>
                 </Info>
                 <Summary>
                     <SummaryTitle>ORDER SUMMARY</SummaryTitle>
                     <SummaryItem>
                         <SummaryItemText>Subtotal</SummaryItemText>
-                        <SummaryItemPrice>$ 80</SummaryItemPrice>
+                        <SummaryItemPrice>$ {cart.total}</SummaryItemPrice>
                     </SummaryItem>
                     <SummaryItem>
                         <SummaryItemText>Estimated Shipping</SummaryItemText>
@@ -217,9 +231,20 @@ const Cart = () => {
                     </SummaryItem> 
                     <SummaryItem type='total'>
                         <SummaryItemText>Total</SummaryItemText>
-                        <SummaryItemPrice>$ 80</SummaryItemPrice>
+                        <SummaryItemPrice>$ {cart.total}</SummaryItemPrice>
                     </SummaryItem>
-                    <Button>CHECKOUT NOW</Button>
+                    <StripeCheckout
+                        name="CHEEKY Shop"
+                        image="https://avatars.githubusercontent.com/u/1486366?v=4"
+                        billingAddress
+                        shippingAddress
+                        description={`Your total is $${cart.total}`}
+                        amount={cart.total*100}
+                        token={onToken}
+                        stripeKey="pk_test_51L05rZHBwns1ghZxlJZAH3I2DneeRf9FAyrgs8naboYyyqYiVuFKwUeVc3ouK5P72Nk4bks2hkFn77uPFiHoKxdZ003Ug3dBtS"
+                    >
+                        <Button>CHECKOUT NOW</Button>
+                    </StripeCheckout>
                 </Summary>
             </Bottom>
         </Wrapper>
